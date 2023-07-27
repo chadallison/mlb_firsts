@@ -1,0 +1,202 @@
+---
+output: github_document
+knit: (function(input, ...) { rmarkdown::render(input, output_file = "README.md", envir = globalenv()) })
+---
+
+```{r message = F, warning = F, include = F}
+library(tidyverse)
+library(baseballr)
+```
+
+### MLB Firsts
+
+```{r message = F, warning = F, echo = F}
+# end_games = data.frame(date = NULL, away_team = NULL, away_score = NULL,
+#                        home_score = NULL, home_team = NULL)
+
+# loading in this season's end game data
+end_games = read_csv("end_games.csv", col_types = cols())
+
+# accounting for all-star weekend and preventing repopulating of existing data
+asg_dates = seq.Date(from = as_date("2023-07-10"), to = as_date("2023-07-13"), by = 1)
+loop_dates = seq.Date(from = as_date("2023-03-30"), to = Sys.Date() - 1, by = 1)
+loop_dates = loop_dates[!loop_dates %in% asg_dates & !loop_dates %in% end_games$date]
+
+# loop to add new data
+if (length(loop_dates) > 0) {
+  for (i in 1:length(loop_dates)) {
+    loop_df = mlb_game_pks(date = loop_dates[i]) |>
+      mutate(date = loop_dates[i]) |>
+      select(date, away_team = teams.away.team.name, away_score = teams.away.score,
+             home_score = teams.home.score, home_team = teams.home.team.name)
+    
+    end_games = rbind(end_games, loop_df)
+  }
+}
+
+end_games = na.omit(end_games)
+
+# updating the folder's season end game data
+write_csv(end_games, "end_games.csv")
+
+win_loss = end_games |>
+  mutate(win_team = ifelse(home_score > away_score, home_team, away_team),
+         win_score = ifelse(home_score > away_score, home_score, away_score),
+         lose_team = ifelse(home_score > away_score, away_team, home_team),
+         lose_score = ifelse(home_score > away_score, away_score, home_score),
+         final_score = paste0(win_score, "-", lose_score),
+         winner_loser = paste0(win_team, " def. ", lose_team),
+         summary = paste0(win_team, " def. ", lose_team, " ", final_score),
+         win_summary = paste0(win_team, " wins ", final_score),
+         lose_summary = paste0(lose_team, " defeated ", final_score))
+
+score_counts = win_loss |>
+  count(final_score)
+
+summary_counts = win_loss |>
+  count(summary)
+
+win_summary_counts = win_loss |>
+  count(win_summary)
+
+lose_summary_counts = win_loss |>
+  count(lose_summary)
+
+wl_counts = win_loss |>
+  count(winner_loser)
+
+# function to find how many times final score has occurred
+get_score_occurred = function(score) {
+  return(score_counts |>
+    filter(final_score == score) |>
+    pull(n))
+}
+
+# function to reformat a date
+better_date = function(date) {
+  return(paste0(month(date, label = T, abbr = F), " ", day(date), ", ", year(date)))
+}
+
+# generating all dates to cover scorigami edge case
+all_dates = better_date(seq.Date(from = as_date("2023-01-01"), to = as_date("2023-12-31"), by = 1))
+
+# function to find last time a score occurred
+get_last_occurrence = function(score) {
+  date = win_loss |>
+    filter(date != Sys.Date() - 1 & final_score == score) |>
+    pull(date) |>
+    max()
+  if (better_date(date) %in% all_dates) return(better_date(date))
+}
+
+# function to find how many times specific outcome has occurred
+get_outcome_occurred = function(outcome) {
+  x = summary_counts |>
+    filter(summary == outcome) |>
+    pull(n)
+  if (length(x) == 0) return(0)
+  return(x)
+}
+
+# function to find how many times winning outcome has occurred
+get_win_occurred = function(outcome) {
+  x = win_summary_counts |>
+    filter(win_summary == outcome) |>
+    pull(n)
+  if (length(x) == 0) return(0)
+  return(x)
+}
+
+# function to find how many times losing outcome has occurred
+get_lose_occurred = function(outcome) {
+  x = lose_summary_counts |>
+    filter(lose_summary == outcome) |>
+    pull(n)
+  if (length(x) == 0) return(0)
+  return(x)
+}
+
+# function to find out how many times the winning team has defeated the losing team
+get_wl_count = function(wl) {
+  x = wl_counts |>
+    filter(winner_loser == wl) |>
+    pull(n)
+  return(x)
+}
+
+df = win_loss |>
+  filter(date == Sys.Date() - 1) |>
+  mutate(score_count = sapply(final_score, get_score_occurred),
+         outcome_count = sapply(summary, get_outcome_occurred),
+         win_count = sapply(win_summary, get_win_occurred),
+         lose_count = sapply(lose_summary, get_lose_occurred),
+         last_time = sapply(final_score, get_last_occurrence),
+         wl_count = sapply(winner_loser, get_wl_count)) |>
+  arrange(score_count)
+
+for (i in 1:nrow(df)) {
+  summary = df$summary[i]
+  last = df$last_time[i]
+  winner = df$win_team[i]
+  loser = df$lose_team[i]
+  wscore = df$win_score[i]
+  lscore = df$lose_score[i]
+  fscore = df$final_score[i]
+  scorect = df$score_count[i]
+  outcomect = df$outcome_count[i]
+  winct = df$win_count[i]
+  losect = df$lose_count[i]
+  wlct = df$wl_count[i]
+  text = paste0(summary, ": The final score ", fscore,
+                ifelse(scorect == 1, " is a Scorigami!",
+                       paste0(" has happened ", scorect, "x this season, last occurring on ", last)),
+         ". The ",
+         winner, " have won by a score of ", fscore, " ", winct, "x this season. ",
+         "The ", loser, " have lost by a score of ", fscore, " ", losect, "x this season. ",
+         "The ", winner, " have now defeated the ", loser, " ", wlct,
+         "x this season and have done so by this score ", outcomect, "x this season.")
+  if (i == 1) text_vec = text
+  if (i > 1) text_vec = append(text_vec, text)
+}
+```
+
+- `r text_vec[1]`
+- `r text_vec[2]`
+- `r text_vec[3]`
+- `r text_vec[4]`
+- `r text_vec[5]`
+- `r text_vec[6]`
+- `r text_vec[7]`
+- `r text_vec[8]`
+- `r text_vec[9]`
+- `r text_vec[10]`
+- `r text_vec[11]`
+- `r text_vec[12]`
+- `r text_vec[13]`
+- `r text_vec[14]`
+<!-- - `r text_vec[15]` -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
