@@ -83,5 +83,4 @@
   Pittsburgh Pirates have won by a score of 3-2 1x this season. The San
   Diego Padres have lost by a score of 3-2 2x this season. The
   Pittsburgh Pirates have now defeated the San Diego Padres 5x this
-  season and have done so by this score 1x this season.
-- NA
+  season and have done so by this score 1x this season. <!-- - NA -->
