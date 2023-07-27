@@ -2,7 +2,7 @@
 ### MLB Firsts
 
 - Texas Rangers def. Houston Astros 13-5: The final score 13-5 is a
-  Scorigami!. The Texas Rangers have won by a score of 13-5 1x this
+  Scorigami! The Texas Rangers have won by a score of 13-5 1x this
   season. The Houston Astros have lost by a score of 13-5 1x this
   season. The Texas Rangers have now defeated the Houston Astros 4x this
   season and have done so by this score 1x this season.

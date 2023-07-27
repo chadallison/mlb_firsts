@@ -149,8 +149,8 @@ for (i in 1:nrow(df)) {
   wlct = df$wl_count[i]
   text = paste0(summary, ": The final score ", fscore,
                 ifelse(scorect == 1, " is a Scorigami!",
-                       paste0(" has happened ", scorect, "x this season, last occurring on ", last)),
-         ". The ",
+                       paste0(" has happened ", scorect, "x this season, last occurring on ", last, ".")),
+         " The ",
          winner, " have won by a score of ", fscore, " ", winct, "x this season. ",
          "The ", loser, " have lost by a score of ", fscore, " ", losect, "x this season. ",
          "The ", winner, " have now defeated the ", loser, " ", wlct,
