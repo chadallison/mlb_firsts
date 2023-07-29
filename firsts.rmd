@@ -165,16 +165,16 @@ for (i in 1:nrow(df)) {
 - `r text_vec[3]`
 - `r text_vec[4]`
 - `r text_vec[5]`
-<!-- - `r text_vec[6]` -->
-<!-- - `r text_vec[7]` -->
-<!-- - `r text_vec[8]` -->
-<!-- - `r text_vec[9]` -->
-<!-- - `r text_vec[10]` -->
-<!-- - `r text_vec[11]` -->
-<!-- - `r text_vec[12]` -->
-<!-- - `r text_vec[13]` -->
-<!-- - `r text_vec[14]` -->
-<!-- - `r text_vec[15]` -->
+- `r text_vec[6]`
+- `r text_vec[7]`
+- `r text_vec[8]`
+- `r text_vec[9]`
+- `r text_vec[10]`
+- `r text_vec[11]`
+- `r text_vec[12]`
+- `r text_vec[13]`
+- `r text_vec[14]`
+- `r text_vec[15]`
 <!-- - `r text_vec[16]` -->
 <!-- - `r text_vec[17]` -->
 <!-- - `r text_vec[18]` -->
